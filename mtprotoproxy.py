@@ -13,6 +13,7 @@ import sys
 import re
 import runpy
 import signal
+import telepot
 
 try:
     import uvloop
@@ -157,6 +158,9 @@ CLIENT_KEEPALIVE = config.get("CLIENT_KEEPALIVE", 10*60)
 CLIENT_HANDSHAKE_TIMEOUT = config.get("CLIENT_HANDSHAKE_TIMEOUT", 10)
 CLIENT_ACK_TIMEOUT = config.get("CLIENT_ACK_TIMEOUT", 5*60)
 TG_CONNECT_TIMEOUT = config.get("TG_CONNECT_TIMEOUT", 10)
+TOKEN = config.get("TOKEN", None)
+CHANNEL = config.get("CHANNEL", None)
+POST_ID = config.get("POST_ID", None)
 
 TG_DATACENTER_PORT = 443
 
@@ -972,13 +976,17 @@ async def handle_client_wrapper(reader, writer):
 async def stats_printer():
     global stats
     while True:
-        await asyncio.sleep(STATS_PRINT_PERIOD)
-
+        await asyncio.sleep(STATS_PRINT_PERIOD) 
         print("Stats for", time.strftime("%d.%m.%Y %H:%M:%S"))
+        text1  = "Stats for " + time.strftime("%d.%m.%Y %H:%M:%S") + "\n"
         for user, stat in stats.items():
-            print("%s: %d connects (%d current), %.2f MB, %d msgs" % (
+            text2 = "%s: %d connects (%d current), %.2f MB, %d msgs" % (
                 user, stat["connects"], stat["curr_connects"],
-                stat["octets"] / 1000000, stat["msgs"]))
+                stat["octets"] / 1000000, stat["msgs"])
+            print(text2)
+            if TOKEN:
+                 bot = telepot.Bot(TOKEN)
+                 bot.editMessage((CHANNEL, POST_ID),text1+text2)
         print(flush=True)
 
 
